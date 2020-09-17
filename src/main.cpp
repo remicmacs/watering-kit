@@ -7,7 +7,7 @@ dht DHT;
 #define DHT11_PIN    9
 #define MOISTURE_PIN A2
 #define VARISTOR_IN A1
-#define DEBUGLED 12
+#define DEBUG_LED 12
 
 #define SLEEP_CYCLES 1 * 15
 
@@ -78,15 +78,15 @@ void timedSleep() {
 void pollBlink() {
   int nb = 5;
   while(nb-- != 0) {
-    digitalWrite(DEBUGLED, HIGH);
+    digitalWrite(DEBUG_LED, HIGH);
     delay(50);
-    digitalWrite(DEBUGLED, LOW);
+    digitalWrite(DEBUG_LED, LOW);
     delay(50);
   }
   delay(500);
   nb = 5;
   while(nb-- != 0) {
-    digitalWrite(DEBUGLED, HIGH);
+    digitalWrite(DEBUG_LED, HIGH);
     delay(50);
   }
 }
@@ -94,9 +94,9 @@ void pollBlink() {
 void interruptBlink() {
   int n = 3;
   while(n--) {
-    digitalWrite(DEBUGLED, HIGH);
+    digitalWrite(DEBUG_LED, HIGH);
     delay(300);
-    digitalWrite(DEBUGLED, LOW);
+    digitalWrite(DEBUG_LED, LOW);
     delay(300);
   }
 }
@@ -104,9 +104,9 @@ void interruptBlink() {
 void setupBlink() {
   int nb = 10;
   while(nb-- != 0) {
-    digitalWrite(DEBUGLED, HIGH);
+    digitalWrite(DEBUG_LED, HIGH);
     delay(50);
-    digitalWrite(DEBUGLED, LOW);
+    digitalWrite(DEBUG_LED, LOW);
     delay(50);
   }
 }
@@ -184,7 +184,7 @@ void setup() {
   // Just to see the setup step
   // setupBlink();
   // initialize LED digital pin as an output.
-  // pinMode(DEBUGLED, OUTPUT);
+  // pinMode(DEBUG_LED, OUTPUT);
 
   /* Disable the watchdog and wait for more than 2 seconds */
   /* Done so that the Arduino doesn't keep resetting infinitely in case of wrong configuration */
