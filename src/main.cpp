@@ -153,32 +153,59 @@ void pollData(){
   // Serial.print(F("\n"));
   // delay(1000);
 }
+void startPump() {
+  digitalWrite(5, HIGH);
+  digitalWrite(6, HIGH);
+}
+
+void stopPump() {
+  digitalWrite(5, LOW);
+  digitalWrite(6, LOW);
+}
+
+/**
+ * Initialize the pins driving the pump and turn the pump off
+ */
+void setupPump() {
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+
+  stopPump();
+}
 
 void setup() {
-  // Just to see the setup step
-  setupBlink();
-  // initialize LED digital pin as an output.
-  pinMode(DEBUGLED, OUTPUT);
 
-  /* Disable the watchdog and wait for more than 2 seconds */
-  /* Done so that the Arduino doesn't keep resetting infinitely in case of wrong configuration */
-  wdt_disable();
-  delay(3000);
+  setupPump();
+  // // Just to see the setup step
+  // setupBlink();
+  // // initialize LED digital pin as an output.
+  // pinMode(DEBUGLED, OUTPUT);
+
+  // /* Disable the watchdog and wait for more than 2 seconds */
+  // /* Done so that the Arduino doesn't keep resetting infinitely in case of wrong configuration */
+  // wdt_disable();
+  // delay(3000);
 }
 
 void loop() {
-  // Signal interrupt
-  if (9 == interrupted) {
-    sleepCycles--;
-    interruptBlink();
-    interrupted = 0;
+  // // Signal interrupt
+  // if (9 == interrupted) {
+  //   sleepCycles--;
+  //   interruptBlink();
+  //   interrupted = 0;
 
-    if (sleepCycles <= 0) {
-      // Poll data only once the sleepCycles are exhausted
-      pollData();
-      // 15 * 4s = 1 min
-      sleepCycles = 15;
-    }
+  //   if (sleepCycles <= 0) {
+  //     // Poll data only once the sleepCycles are exhausted
+  //     pollData();
+  //     // 15 * 4s = 1 min
+  //     sleepCycles = 15;
+  //   }
+  // }
+  // timedSleep();
+  pollData();
+  if (soilHumidity <= 100) {
+    startPump();
+  } else {
+    stopPump();
   }
-  timedSleep();
 }
