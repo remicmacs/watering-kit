@@ -9,7 +9,7 @@ dht DHT;
 #define VARISTOR_IN A1
 #define DEBUG_LED 12
 
-#define SLEEP_CYCLES 1 * 15
+#define SLEEP_CYCLES 180 * 15
 
 int airHumidity;
 int airTemperature;
