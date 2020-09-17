@@ -29,8 +29,10 @@ ISR(WDT_vect) {
 }
 
 void watchdogSetup(void){
-  cli(); // disable all interrupts
-  wdt_reset(); // reset the WDT timer
+  // disable all interrupts
+  cli();
+  // reset the WDT timer
+  wdt_reset();
   /**
    * WDTCSR configuration:
    * WDIE  = 1: Interrupt Enable
@@ -116,40 +118,12 @@ void setupBlink() {
 #endif
 
 void pollData(){
-  int chk;
-  chk = DHT.read11(DHT11_PIN);   //Read Data
-  switch (chk){
-    case DHTLIB_OK:
-      // Serial.print("OK,\t");
-      break;
-    case DHTLIB_ERROR_CHECKSUM:
-      // Serial.print("Checksum error,\t");
-      break;
-    case DHTLIB_ERROR_TIMEOUT:
-      // Serial.print("Time out error,\t");
-      break;
-    default:
-      // Serial.print("Unknown error,\t");
-      break;
-  }
+  //Read Data
+  DHT.read11(DHT11_PIN);
   airHumidity = DHT.humidity;
   airTemperature = DHT.temperature;
   soilHumidity = analogRead(MOISTURE_PIN);
   varistor = analogRead(VARISTOR_IN);
-
-  // Serial.print(F("airHumidity:"));
-  // Serial.print(airHumidity);
-  // Serial.print(F(",\t"));
-  // Serial.print(F("airTemperature:"));
-  // Serial.print(airTemperature);
-  // Serial.print(F(",\t"));50
-  // Serial.print(F("Soil Humidity : "));
-  // Serial.print(soilHumidity);
-  // Serial.print(F(",\t"));
-  // Serial.print(F("varistor : "));
-  // Serial.print(varistor);
-  // Serial.print(F("\n"));
-  // delay(1000);
 }
 
 #ifndef LEDDEBUG
