@@ -75,7 +75,8 @@ void timedSleep() {
   deepSleep();
 }
 
-void pollBlink() {
+#ifdef LEDDEBUG
+void wakeBlink() {
   int nb = 5;
   while(nb-- != 0) {
     digitalWrite(DEBUG_LED, HIGH);
@@ -87,6 +88,8 @@ void pollBlink() {
   nb = 5;
   while(nb-- != 0) {
     digitalWrite(DEBUG_LED, HIGH);
+    delay(50);
+    digitalWrite(DEBUG_LED, LOW);
     delay(50);
   }
 }
@@ -110,9 +113,9 @@ void setupBlink() {
     delay(50);
   }
 }
+#endif
 
 void pollData(){
-  // pollBlink();
   int chk;
   chk = DHT.read11(DHT11_PIN);   //Read Data
   switch (chk){
@@ -148,6 +151,8 @@ void pollData(){
   // Serial.print(F("\n"));
   // delay(1000);
 }
+
+#ifndef LEDDEBUG
 void startPump() {
   digitalWrite(5, HIGH);
   digitalWrite(6, HIGH);
@@ -177,15 +182,20 @@ void wateringRoutine() {
   }
   stopPump();
 }
+#endif
 
 void setup() {
 
-  setupPump();
+#ifdef LEDDEBUG
   // Just to see the setup step
-  // setupBlink();
-  // initialize LED digital pin as an output.
-  // pinMode(DEBUG_LED, OUTPUT);
+  setupBlink();
+  //initialize LED digital pin as an output.
+  pinMode(DEBUG_LED, OUTPUT);
+#endif
 
+#ifndef LEDDEBUG
+  setupPump();
+#endif
   /* Disable the watchdog and wait for more than 2 seconds */
   /* Done so that the Arduino doesn't keep resetting infinitely in case of wrong configuration */
   wdt_disable();
@@ -196,12 +206,19 @@ void loop() {
   // Signal interrupt
   if (9 == interrupted) {
     sleepCycles--;
-    // interruptBlink();
+#ifdef LEDDEBUG
+    interruptBlink();
+#endif
     interrupted = 0;
 
     if (sleepCycles <= 0) {
+#ifdef LEDDEBUG
+      wakeBlink();
+#endif
+#ifndef LEDDEBUG
       // Watering cycle
       wateringRoutine();
+#endif
       sleepCycles = SLEEP_CYCLES;
     }
   }
