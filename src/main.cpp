@@ -20,6 +20,7 @@ int counter = 0;
 #endif
 
 volatile int interrupted = 9;
+volatile int sleepCycles = 0;
 
 /**
  * Interrupt configured on watchdog vector
@@ -40,8 +41,22 @@ void watchdogSetup(void){
    */
   // Enter Watchdog Configuration mode:
   WDTCSR |= (1<<WDCE) | (1<<WDE);
-  // Set Watchdog settings: 8s
-  WDTCSR = (1<<WDIE) | (1<<WDE) | (1<<WDP3)  | (0<<WDP2) | (0<<WDP1)  | (1<<WDP0);
+  /**
+   * Setting the watchdog pre-scaler value with VCC = 5.0V and 16mHZ
+   * WDP3 WDP2 WDP1 WDP0 | Number of WDT | Typical Time-out at Oscillator Cycles
+   * 0    0    0    0    |   2K cycles   | 16 ms
+   * 0    0    0    1    |   4K cycles   | 32 ms
+   * 0    0    1    0    |   8K cycles   | 64 ms
+   * 0    0    1    1    |  16K cycles   | 0.125 s
+   * 0    1    0    0    |  32K cycles   | 0.25 s
+   * 0    1    0    1    |  64K cycles   | 0.5 s
+   * 0    1    1    0    |  128K cycles  | 1.0 s
+   * 0    1    1    1    |  256K cycles  | 2.0 s
+   * 1    0    0    0    |  512K cycles  | 4.0 s
+   * 1    0    0    1    | 1024K cycles  | 8.0 s
+  */
+  // Set Watchdog settings: 4s
+  WDTCSR = (1<<WDIE) | (1<<WDE) | (1<<WDP3)  | (0<<WDP2) | (0<<WDP1)  | (0<<WDP0);
   sei();
 }
 
@@ -64,14 +79,21 @@ void timedSleep() {
 }
 
 void pollBlink() {
-  digitalWrite(DEBUGLED, HIGH);
+  int nb = 5;
+  while(nb-- != 0) {
+    digitalWrite(DEBUGLED, HIGH);
+    delay(50);
+    digitalWrite(DEBUGLED, LOW);
+    delay(50);
+  }
   delay(500);
-  digitalWrite(DEBUGLED, LOW);
-  delay(300);
-  digitalWrite(DEBUGLED, HIGH);
-  delay(500);
-  digitalWrite(DEBUGLED, LOW);
-  delay(300);
+  nb = 5;
+  while(nb-- != 0) {
+    digitalWrite(DEBUGLED, HIGH);
+    delay(50);
+    digitalWrite(DEBUGLED, LOW);
+    delay(50);
+  }
 }
 
 void interruptBlink() {
@@ -147,9 +169,16 @@ void setup() {
 void loop() {
   // Signal interrupt
   if (9 == interrupted) {
+    sleepCycles--;
     interruptBlink();
     interrupted = 0;
+
+    if (sleepCycles <= 0) {
+      // Poll data only once the sleepCycles are exhausted
+      pollData();
+      // 15 * 4s = 1 min
+      sleepCycles = 15;
+    }
   }
-  pollData();
   timedSleep();
 }
