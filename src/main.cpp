@@ -7,18 +7,15 @@ dht DHT;
 #define DHT11_PIN    9
 #define MOISTURE_PIN A2
 #define VARISTOR_IN A1
+#define DEBUGLED 12
+
+#define SLEEP_CYCLES 1 * 15
 
 int airHumidity;
 int airTemperature;
 int soilHumidity;
 int varistor;
-int counter = 0;
-
-
-#ifndef DEBUGLED
-#define DEBUGLED 12
-#endif
-
+// Safe value to be ensure no false positives
 volatile int interrupted = 9;
 volatile int sleepCycles = 0;
 
@@ -91,8 +88,6 @@ void pollBlink() {
   while(nb-- != 0) {
     digitalWrite(DEBUGLED, HIGH);
     delay(50);
-    digitalWrite(DEBUGLED, LOW);
-    delay(50);
   }
 }
 
@@ -117,7 +112,7 @@ void setupBlink() {
 }
 
 void pollData(){
-  pollBlink();
+  // pollBlink();
   int chk;
   chk = DHT.read11(DHT11_PIN);   //Read Data
   switch (chk){
@@ -173,39 +168,42 @@ void setupPump() {
   stopPump();
 }
 
+void wateringRoutine() {
+  stopPump();
+  pollData();
+  while(soilHumidity <=varistor) {
+    startPump();
+    pollData();
+  }
+  stopPump();
+}
+
 void setup() {
 
   setupPump();
-  // // Just to see the setup step
+  // Just to see the setup step
   // setupBlink();
-  // // initialize LED digital pin as an output.
+  // initialize LED digital pin as an output.
   // pinMode(DEBUGLED, OUTPUT);
 
-  // /* Disable the watchdog and wait for more than 2 seconds */
-  // /* Done so that the Arduino doesn't keep resetting infinitely in case of wrong configuration */
-  // wdt_disable();
-  // delay(3000);
+  /* Disable the watchdog and wait for more than 2 seconds */
+  /* Done so that the Arduino doesn't keep resetting infinitely in case of wrong configuration */
+  wdt_disable();
+  delay(3000);
 }
 
 void loop() {
-  // // Signal interrupt
-  // if (9 == interrupted) {
-  //   sleepCycles--;
-  //   interruptBlink();
-  //   interrupted = 0;
+  // Signal interrupt
+  if (9 == interrupted) {
+    sleepCycles--;
+    // interruptBlink();
+    interrupted = 0;
 
-  //   if (sleepCycles <= 0) {
-  //     // Poll data only once the sleepCycles are exhausted
-  //     pollData();
-  //     // 15 * 4s = 1 min
-  //     sleepCycles = 15;
-  //   }
-  // }
-  // timedSleep();
-  pollData();
-  if (soilHumidity <= 100) {
-    startPump();
-  } else {
-    stopPump();
+    if (sleepCycles <= 0) {
+      // Watering cycle
+      wateringRoutine();
+      sleepCycles = SLEEP_CYCLES;
+    }
   }
+  timedSleep();
 }
