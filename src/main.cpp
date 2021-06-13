@@ -9,15 +9,18 @@ dht DHT;
 #define VARISTOR_IN A1
 #define DEBUG_LED 12
 
-#define SLEEP_CYCLES 180 * 15
+// 512K cycles of WDT = 60 seconds
+#define MINUTE_SLEEP_CYCLE 15
+
+#define MINUTE_SLEEP 180
 
 int airHumidity;
 int airTemperature;
 int soilHumidity;
 int varistor;
-// Safe value to be ensure no false positives
-volatile int interrupted = 9;
-volatile int sleepCycles = 0;
+// Safe value to ensure no false positives
+volatile int interrupted = 7;
+volatile int sleepCycles = MINUTE_SLEEP * MINUTE_SLEEP_CYCLE;
 
 /**
  * Interrupt configured on watchdog vector
@@ -53,7 +56,7 @@ void watchdogSetup(void){
    * 0    1    1    1    |  256K cycles  | 2.0 s
    * 1    0    0    0    |  512K cycles  | 4.0 s
    * 1    0    0    1    | 1024K cycles  | 8.0 s
-  */
+   */
   // Set Watchdog settings: 4s
   WDTCSR = (1<<WDIE) | (1<<WDE) | (1<<WDP3)  | (0<<WDP2) | (0<<WDP1)  | (0<<WDP0);
   sei();
@@ -67,9 +70,10 @@ void deepSleep() {
   cli();
   sleep_enable();
   sei();
+  // Going to sleep
   sleep_cpu();
+  // Waking up here
   sleep_disable();
-  sei();
 }
 
 void timedSleep() {
@@ -193,7 +197,7 @@ void loop() {
       // Watering cycle
       wateringRoutine();
 #endif
-      sleepCycles = SLEEP_CYCLES;
+      sleepCycles = MINUTE_SLEEP * MINUTE_SLEEP_CYCLE;
     }
   }
   timedSleep();
